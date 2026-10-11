@@ -1,0 +1,892 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PARK-X — Smart Parking. Made Simple.</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&amp;family=Work+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --navy:#12253f; --ink:#18324f; --blue:#0876c9; --cyan:#1aa6c8;
+      --green:#158266; --amber:#bb7511; --red:#c33b42; --paper:#f5f7f8;
+      --line:#d9e2e8; --muted:#657b8e; --white:#ffffff;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--paper);color:var(--ink);font-family:"Work Sans",sans-serif}
+    button,input,select{font:inherit}
+    button{cursor:pointer}
+    button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #1aa6c880;outline-offset:3px}
+    .app-shell{width:100%;overflow:hidden}
+    .page-wrap{width:100%;max-width:1200px;margin:0 auto;padding:0 24px}
+    .serif{font-family:"Fraunces",serif}
+    .topline{height:4px;background:linear-gradient(90deg,#0876c9 0 43%,#1aa6c8 43% 73%,#158266 73%)}
+    .public-nav{position:sticky;top:0;z-index:50;background:#ffffffeb;backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+    .nav-inner{min-height:72px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+    .brand{display:flex;align-items:center;gap:11px;text-decoration:none}
+    .brand-mark{width:34px;height:34px;display:grid;place-items:center;background:var(--navy);color:#fff;font-size:12px;font-weight:700;letter-spacing:-1px}
+    .brand-word{color:var(--navy);font-weight:700;letter-spacing:.11em}
+    .nav-links{display:flex;align-items:center;gap:19px}
+    .nav-links a{font-size:13px;color:#50677b;text-decoration:none;font-weight:600}
+    .nav-links a:hover{color:var(--blue)}
+    .nav-actions{display:flex;gap:9px}
+    .btn{min-height:47px;border:0;padding:0 18px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:13px;font-weight:700;text-decoration:none;transition:transform .2s,box-shadow .2s,background .2s}
+    .btn:hover{transform:translateY(-2px);box-shadow:0 10px 20px #18324f1c}
+    .btn svg{width:17px;height:17px}
+    .btn-primary{background:#0876c9;color:#fff}
+    .btn-secondary{background:#fff;color:var(--navy);border:1px solid #bccbd5}
+    .btn-small{min-height:38px;padding:0 12px;font-size:12px}
+    .hero{position:relative;background:#eff6f8;border-bottom:1px solid var(--line)}
+    .hero-grid{min-height:625px;display:grid;grid-template-columns:.88fr 1.12fr;align-items:center;gap:48px}
+    .eyebrow{font-size:11px;font-weight:700;color:var(--blue);letter-spacing:.16em}
+    .hero-title{margin:15px 0 21px;color:var(--navy);font-size:clamp(46px,6.1vw,77px);line-height:.97;letter-spacing:-.055em}
+    .hero-copy{max-width:520px;color:#5c7185;font-size:17px;line-height:1.68;margin:0}
+    .action-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:29px}
+    .hero-note{display:flex;align-items:center;gap:9px;margin-top:23px;color:#61778a;font-size:12px;font-weight:600}
+    .live-dot{width:9px;height:9px;border-radius:50%;background:#51c999;box-shadow:0 0 0 0 #51c99980;animation:pulse 1.8s infinite}
+    @keyframes pulse{70%{box-shadow:0 0 0 10px #51c99900}100%{box-shadow:0 0 0 0 #51c99900}}
+    .parking-scene{position:relative;min-height:457px;overflow:hidden;background:#14304c;box-shadow:0 23px 45px #12253f28}
+    .scene-atmosphere{position:absolute;inset:0;background:linear-gradient(135deg,#08263db8,#0d6b80a6),radial-gradient(circle at 80% 18%,#61d5e252,transparent 30%)}
+    .scene-grid{position:absolute;inset:0;opacity:.22;background-image:linear-gradient(#ffffff18 1px,transparent 1px),linear-gradient(90deg,#ffffff18 1px,transparent 1px);background-size:42px 42px}
+    .scene-hud{position:absolute;z-index:10;color:#fff}
+    .scene-hud label{display:block;color:#9be8f5;font-size:10px;letter-spacing:.15em;margin-bottom:5px}
+    .scene-hud strong{font-size:15px}
+    .hud-top{left:23px;top:22px}.hud-bottom{right:23px;bottom:23px;text-align:right}
+    .entry-lane{position:absolute;z-index:2;left:-8%;bottom:45px;width:72%;height:116px;background:#102235;transform:rotate(-9deg);border-top:2px solid #bcd8e34a;border-bottom:2px solid #bcd8e32}
+    .lane-dashes{position:absolute;top:50%;left:0;width:100%;border-top:2px dashed #ecf7fa57}
+    .gate{position:absolute;z-index:5;left:38%;bottom:152px;width:93px;height:72px;border-left:4px solid #c8e5ed;border-right:4px solid #c8e5ed}
+    .gate:before{content:"";position:absolute;top:0;left:-4px;width:93px;border-top:5px solid #c8e5ed}
+    .gate-arm{position:absolute;left:8px;bottom:22px;width:75px;border-top:4px solid #f0c04e;transform-origin:left center;animation:gateOpen 8s ease-in-out infinite}
+    .scan-field{position:absolute;z-index:4;left:43%;bottom:133px;width:105px;height:76px;border:1px solid #5ee5e688;background:#4ddae31c;animation:scan 8s ease-in-out infinite}
+    @keyframes scan{0%,17%{opacity:0}22%,41%{opacity:1}46%,100%{opacity:0}}
+    @keyframes gateOpen{0%,19%{transform:rotate(0)}27%,100%{transform:rotate(-62deg)}}
+    .slot-bank{position:absolute;z-index:3;right:27px;top:74px;display:grid;grid-template-columns:repeat(4,58px);gap:10px}
+    .scene-slot{height:78px;border:1px solid #c7e2edaa;background:#0d4d63b3;position:relative}
+    .scene-slot:after{content:"";position:absolute;left:7px;right:7px;bottom:7px;border-top:1px solid #d9f4f366}
+    .scene-slot.occupied{background:#0876c9d6}
+    .scene-slot.ev{background:#147b6cc9;border-color:#75edbd}
+    .scene-slot.assigned{animation:occupy 8s ease-in-out infinite}
+    @keyframes occupy{0%,59%{background:#0d4d63b3;box-shadow:none}68%,100%{background:#0876c9d6;box-shadow:0 0 0 3px #5bd7e565}}
+    .route-line{position:absolute;z-index:4;width:178px;height:154px;right:132px;bottom:113px;border-right:2px dashed #6ae9f2;transform:skewY(-29deg);opacity:0;animation:route 8s ease-in-out infinite}
+    @keyframes route{0%,32%{opacity:0}40%,76%{opacity:1}85%,100%{opacity:0}}
+    .scene-car{position:absolute;z-index:8;width:58px;height:28px;border-radius:9px 9px 5px 5px;box-shadow:0 9px 16px #0008}
+    .scene-car:before{content:"";position:absolute;left:11px;top:4px;width:36px;height:10px;background:#c7e5f1;border-radius:6px 6px 2px 2px}
+    .car-arrival{background:#e9f5f8;left:-80px;bottom:104px;animation:arrival 8s linear infinite}
+    .car-parked{background:#f4bd51;right:91px;top:185px;opacity:0;transform:rotate(-90deg);animation:parked 8s ease-in-out infinite}
+    .car-idle{background:#1aa6c8;right:24px;bottom:55px;transform:rotate(-9deg)}
+    @keyframes arrival{0%{left:-80px;bottom:104px}28%{left:36%;bottom:154px}45%{left:47%;bottom:190px;transform:rotate(-53deg)}60%,100%{left:67%;bottom:246px;transform:rotate(-90deg);opacity:0}}
+    @keyframes parked{0%,58%{opacity:0;transform:translate(-78px,95px) rotate(-54deg)}67%,100%{opacity:1;transform:rotate(-90deg)}}
+    .section{padding:80px 0}
+    .section-head{display:flex;justify-content:space-between;align-items:end;gap:30px}
+    .section-title{margin:9px 0;color:var(--navy);font-size:clamp(32px,4vw,48px);line-height:1.03;letter-spacing:-.045em}
+    .section-copy{max-width:625px;margin:0;color:#667b8d;line-height:1.65}
+    .status-pill{padding:9px 12px;background:#e8f6ef;color:#12634e;font-size:12px;font-weight:700;white-space:nowrap}
+    .availability-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#dce5e9;border:1px solid #dce5e9;margin-top:35px}
+    .stat-card{min-height:155px;padding:24px;background:#fff}
+    .stat-card:nth-child(1){border-top:3px solid var(--blue)}.stat-card:nth-child(2){border-top:3px solid var(--red)}.stat-card:nth-child(3){border-top:3px solid var(--green)}.stat-card:nth-child(4){border-top:3px solid var(--amber)}
+    .stat-card span{display:block;color:#6b8090;font-size:11px;font-weight:700;letter-spacing:.07em}
+    .stat-card strong{display:block;color:var(--navy);font-size:36px;letter-spacing:-.05em;margin-top:13px}
+    .stat-card small{color:#758897;font-size:12px}
+    .zone-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-top:16px}
+    .zone-card{background:#fff;border:1px solid var(--line);padding:19px}
+    .zone-top{display:flex;justify-content:space-between;align-items:center}
+    .zone-card h3{margin:0;color:var(--navy);font-size:17px}.zone-card p{margin:7px 0 14px;color:#657b8e;font-size:12px}
+    .zone-meter{height:7px;background:#e6edf1;overflow:hidden}.zone-meter i{display:block;height:100%;background:var(--blue);transition:width .35s ease}
+    .features-area{background:#edf3f5;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .feature-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-top:35px;background:#d8e3e8;border:1px solid #d8e3e8}
+    .feature-card{background:#fff;padding:25px;min-height:188px}
+    .feature-card svg{width:22px;height:22px;color:var(--blue);margin-bottom:18px}
+    .feature-card h3{margin:0 0 8px;color:var(--navy);font-size:16px}
+    .feature-card p{margin:0;color:#687d8d;font-size:13px;line-height:1.58}
+    .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:35px}
+    .step{border-top:2px solid #b8d5e2;padding-top:19px}.step-no{font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--blue)}
+    .step h3{margin:9px 0;color:var(--navy);font-size:20px}.step p{margin:0;color:#657b8e;line-height:1.6;font-size:14px}
+    .flow-overlay{display:none;position:fixed;z-index:100;inset:0;background:#0d213b70;padding:24px;overflow:auto}
+    .flow-overlay.show{display:block;animation:fade .22s ease}
+    @keyframes fade{from{opacity:0}to{opacity:1}}
+    .flow-panel{width:min(850px,100%);margin:36px auto;background:#fff;box-shadow:0 26px 65px #06172852;border-top:4px solid var(--blue)}
+    .flow-head{display:flex;justify-content:space-between;gap:20px;padding:29px 30px 20px;border-bottom:1px solid var(--line)}
+    .flow-title{margin:8px 0 0;color:var(--navy);font-size:32px;letter-spacing:-.045em}
+    .icon-close{width:40px;height:40px;border:1px solid #c9d6de;background:#fff;color:var(--navy);display:grid;place-items:center}
+    .flow-body{padding:27px 30px 32px}
+    .flow-copy{margin:0 0 22px;color:#667b8d;font-size:14px;line-height:1.6}
+    .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:17px}.field-full{grid-column:1/-1}
+    .field label{display:block;margin-bottom:7px;color:#405870;font-size:12px;font-weight:700}
+    .field input,.field select{width:100%;height:47px;padding:0 12px;border:1px solid #cbd8e1;background:#fbfcfc;color:#18324f}
+    .field input:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #0876c91a;outline:none}
+    .notice{display:none;margin:19px 0 0;padding:13px 15px;font-size:14px;line-height:1.5}
+    .notice.show{display:block}.notice.info{background:#e7f5fa;border-left:3px solid var(--cyan);color:#175a77}.notice.success{background:#e8f6ef;border-left:3px solid var(--green);color:#12634e}.notice.error{background:#fff0f0;border-left:3px solid var(--red);color:#982f36}
+    .allocation{display:none;text-align:center;padding:30px 0 7px}.allocation.show{display:block}
+    .scanner{width:56px;height:56px;border:3px solid var(--blue);border-top-color:transparent;border-radius:50%;margin:0 auto 15px;animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .receipt{display:none;max-width:550px;margin:24px auto 0;border:1px solid #d6e0e6;background:#fff}.receipt.show{display:block}
+    .receipt-head{background:var(--navy);padding:22px;color:#fff}.receipt-brand{font-size:12px;font-weight:700;letter-spacing:.17em}.receipt-head h3{margin:8px 0 0;font-size:22px}
+    .receipt-body{padding:21px}.receipt-row{display:flex;justify-content:space-between;gap:18px;padding:10px 0;border-bottom:1px solid #e4eaed;font-size:14px}.receipt-row span{color:#6a7e8e}.receipt-row strong{text-align:right;color:#18324f}.receipt-note{margin:17px 0 0;color:#64748b;font-size:13px;line-height:1.55}
+    .verify-panel,.checkout-panel{display:none;margin-top:20px;padding:18px;background:#e8f6ef;border-left:4px solid var(--green);color:#12634e}.verify-panel.show,.checkout-panel.show{display:block}.verify-panel h3,.checkout-panel h3{margin:0;font-size:19px}.verify-panel ul{margin:11px 0 0;padding-left:18px;line-height:1.8;font-size:13px}
+    .bill-panel{display:none;max-width:560px;margin:22px auto 0;border:1px solid var(--line);padding:20px}.bill-panel.show{display:block}.bill-title{margin:0 0 13px;color:var(--navy);font-size:27px}.bill-total{display:flex;justify-content:space-between;padding:17px 0;color:var(--navy);font-size:21px;font-weight:700}
+    .contact-band{background:var(--navy);color:#fff}.contact-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:35px;align-items:center}.contact-band .section-title{color:#fff}.contact-band .section-copy{color:#b9cad5}.contact-note{padding:22px;border-left:2px solid var(--cyan);color:#d9e9ef;line-height:1.6;font-size:14px}
+    footer{padding:24px 0;background:#0c1d31;color:#a9bdca;font-size:12px}.footer-row{display:flex;justify-content:space-between;gap:20px}.footer-row span:last-child{text-align:right}
+    .hidden{display:none!important}
+    @media(max-width:950px){.nav-links{display:none}.hero-grid{grid-template-columns:1fr;padding:57px 0}.parking-scene{min-height:410px}.availability-grid{grid-template-columns:repeat(2,1fr)}.feature-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:640px){.page-wrap{padding:0 18px}.nav-actions .btn-secondary{display:none}.nav-inner{min-height:65px}.hero-grid{gap:32px;padding:46px 0}.hero-title{font-size:48px}.parking-scene{min-height:330px}.slot-bank{right:12px;top:66px;grid-template-columns:repeat(4,43px);gap:7px}.scene-slot{height:59px}.gate{transform:scale(.8);transform-origin:left bottom;left:34%;bottom:125px}.scan-field{left:38%;bottom:111px}.scene-hud{font-size:11px}.hud-top{left:14px;top:15px}.hud-bottom{right:14px;bottom:15px}.section{padding:57px 0}.section-head{align-items:flex-start;flex-direction:column;gap:12px}.availability-grid,.zone-grid,.feature-grid,.how-grid,.form-grid,.contact-grid{grid-template-columns:1fr}.flow-overlay{padding:0}.flow-panel{margin:0;min-height:100%}.flow-head{padding:23px 20px 18px}.flow-body{padding:22px 20px 28px}.flow-title{font-size:29px}.receipt-row{font-size:13px}.footer-row{flex-direction:column}.footer-row span:last-child{text-align:left}}
+  </style>
+ </head>
+ <body data-template-id="__page-root">
+  <div class="app-shell">
+   <div class="topline"></div>
+   <header class="public-nav">
+    <nav class="page-wrap nav-inner" aria-label="Primary navigation"><a class="brand" href="#home" aria-label="PARK-X home"> <span class="brand-mark">PX</span> <span data-template-id="brand-name" class="canva-text brand-word">PARK-X</span> </a>
+     <div class="nav-links"><a data-template-id="nav-home" class="canva-link" href="#home">Home</a> <a data-template-id="nav-how" class="canva-link" href="#how-it-works">How It Works</a> <a data-template-id="nav-availability" class="canva-link" href="#availability">Availability</a> <a data-template-id="nav-features" class="canva-link" href="#features">Features</a> <a data-template-id="nav-contact" class="canva-link" href="#contact">Contact</a>
+     </div>
+     <div class="nav-actions"><button id="nav-exit" data-template-id="nav-exit-button" class="canva-button btn btn-secondary btn-small" type="button">Exit Vehicle</button> <button id="nav-park" data-template-id="nav-park-button" class="canva-button btn btn-primary btn-small" type="button">Park Your Vehicle</button>
+     </div>
+    </nav>
+   </header>
+   <main>
+    <section id="home" class="hero">
+     <div class="page-wrap hero-grid">
+      <div>
+       <div data-template-id="hero-eyebrow" class="canva-text eyebrow">SMART PARKING, SIMPLIFIED</div>
+       <h1 data-template-id="hero-title" class="canva-text serif hero-title">Park smarter.<br>Move faster.</h1>
+       <p data-template-id="hero-copy" class="canva-text hero-copy">A connected parking experience that allocates spaces intelligently, keeps every vehicle secure, and makes entry and exit effortless.</p>
+       <div class="action-row"><button id="hero-park" data-template-id="hero-park-button" class="canva-button btn btn-primary" type="button"> <i data-lucide="car-front"></i> </button> <button id="hero-exit" data-template-id="hero-exit-button" class="canva-button btn btn-secondary" type="button"> <i data-lucide="log-out"></i> </button>
+       </div>
+       <div class="hero-note">
+        <span class="live-dot"></span><span id="hero-status">Live availability is updating</span>
+       </div>
+      </div>
+      <div class="parking-scene" aria-label="Animated smart parking allocation simulation">
+       <div class="scene-atmosphere"></div>
+       <div class="scene-grid"></div>
+       <div class="scene-hud hud-top"><label>LIVE PARKING GRID</label> <strong><span class="live-dot"></span><span id="scene-available">0 slots available</span></strong>
+       </div>
+       <div class="scene-hud hud-bottom"><label>ALLOCATION ENGINE</label> <strong id="scene-allocation">SCANNING APPROACH LANE</strong>
+       </div>
+       <div class="entry-lane">
+        <div class="lane-dashes"></div>
+       </div>
+       <div class="gate">
+        <div class="gate-arm"></div>
+       </div>
+       <div class="scan-field"></div>
+       <div class="route-line"></div>
+       <div class="slot-bank" aria-hidden="true">
+        <div class="scene-slot"></div>
+        <div class="scene-slot occupied"></div>
+        <div class="scene-slot"></div>
+        <div class="scene-slot ev"></div>
+        <div class="scene-slot occupied"></div>
+        <div class="scene-slot"></div>
+        <div class="scene-slot assigned"></div>
+        <div class="scene-slot"></div>
+        <div class="scene-slot"></div>
+        <div class="scene-slot occupied"></div>
+        <div class="scene-slot"></div>
+        <div class="scene-slot occupied"></div>
+       </div>
+       <div class="scene-car car-arrival"></div>
+       <div class="scene-car car-parked"></div>
+       <div class="scene-car car-idle"></div>
+      </div>
+     </div>
+    </section>
+    <section id="availability" class="section">
+     <div class="page-wrap">
+      <div class="section-head">
+       <div>
+        <div data-template-id="availability-eyebrow" class="canva-text eyebrow">LIVE CAPACITY</div>
+        <h2 data-template-id="availability-title" class="canva-text serif section-title">Know your space before you arrive.</h2>
+        <p data-template-id="availability-copy" class="canva-text section-copy">Real-time visibility across every connected parking zone.</p>
+       </div><span id="mode-status" class="status-pill">CURRENT PARKING MODE: NORMAL</span>
+      </div>
+      <div class="availability-grid">
+       <article class="stat-card"><span data-template-id="available-label" class="canva-text">Available</span> <strong id="available-count">0</strong> <small id="available-detail">Ready for allocation</small>
+       </article>
+       <article class="stat-card"><span data-template-id="occupied-label" class="canva-text">Occupied</span> <strong id="occupied-count">0</strong> <small id="occupied-detail">Vehicles currently parked</small>
+       </article>
+       <article class="stat-card"><span data-template-id="ev-label-stat" class="canva-text">EV Ready</span> <strong id="ev-count">0</strong> <small id="ev-detail">Compatible spaces available</small>
+       </article>
+       <article class="stat-card"><span data-template-id="capacity-label" class="canva-text">Total Capacity</span> <strong id="capacity-count">0</strong> <small id="capacity-detail">Across three connected zones</small>
+       </article>
+      </div>
+      <div id="zone-list" class="zone-grid" aria-label="Parking zone availability"></div>
+     </div>
+    </section>
+    <section id="how-it-works" class="section features-area">
+     <div class="page-wrap">
+      <div data-template-id="how-eyebrow" class="canva-text eyebrow">HOW IT WORKS</div>
+      <h2 data-template-id="how-title" class="canva-text serif section-title">From arrival to exit, without the friction.</h2>
+      <p data-template-id="how-copy" class="canva-text section-copy">PARK-X coordinates every step so drivers spend less time searching and more time moving.</p>
+      <div class="how-grid">
+       <article class="step">
+        <div data-template-id="step-one-number" class="canva-text step-no">01</div>
+        <h3 data-template-id="step-one-title" class="canva-text">Enter</h3>
+        <p data-template-id="step-one-copy" class="canva-text">Register your vehicle and receive a secure parking ID.</p>
+       </article>
+       <article class="step">
+        <div data-template-id="step-two-number" class="canva-text step-no">02</div>
+        <h3 data-template-id="step-two-title" class="canva-text">Park</h3>
+        <p data-template-id="step-two-copy" class="canva-text">Our allocation engine assigns the best available slot.</p>
+       </article>
+       <article class="step">
+        <div data-template-id="step-three-number" class="canva-text step-no">03</div>
+        <h3 data-template-id="step-three-title" class="canva-text">Exit</h3>
+        <p data-template-id="step-three-copy" class="canva-text">Verify your details, settle the bill, and leave smoothly.</p>
+       </article>
+      </div>
+     </div>
+    </section>
+    <section id="features" class="section">
+     <div class="page-wrap">
+      <div data-template-id="features-eyebrow" class="canva-text eyebrow">BUILT FOR BETTER PARKING</div>
+      <h2 data-template-id="features-title" class="canva-text serif section-title">Everything your parking operation needs.</h2>
+      <p data-template-id="features-copy" class="canva-text section-copy">A reliable digital layer for allocation, security, reporting, and electric mobility.</p>
+      <div class="feature-grid">
+       <article class="feature-card"><i data-lucide="scan-line"></i>
+        <h3 data-template-id="feature-entry-title" class="canva-text">Fast Entry</h3>
+        <p data-template-id="feature-entry-copy" class="canva-text">Quick vehicle registration with a digital parking receipt.</p>
+       </article>
+       <article class="feature-card"><i data-lucide="route"></i>
+        <h3 data-template-id="feature-allocation-title" class="canva-text">Smart Allocation</h3>
+        <p data-template-id="feature-allocation-copy" class="canva-text">Intelligent slot assignment reduces search time and congestion.</p>
+       </article>
+       <article class="feature-card"><i data-lucide="shield-check"></i>
+        <h3 data-template-id="feature-security-title" class="canva-text">Secure by Design</h3>
+        <p data-template-id="feature-security-copy" class="canva-text">Unique parking IDs and exit PINs protect every active record.</p>
+       </article>
+       <article class="feature-card"><i data-lucide="zap"></i>
+        <h3 data-template-id="feature-ev-title" class="canva-text">EV Charging</h3>
+        <p data-template-id="feature-ev-copy" class="canva-text">Track EV-compatible spaces and charging activity in one place.</p>
+       </article>
+      </div>
+     </div>
+    </section>
+    <section id="contact" class="section contact-band">
+     <div class="page-wrap contact-grid">
+      <div>
+       <div data-template-id="contact-eyebrow" class="canva-text eyebrow">READY WHEN YOU ARE</div>
+       <h2 data-template-id="contact-title" class="canva-text serif section-title">Make every parking moment count.</h2>
+       <p data-template-id="contact-copy" class="canva-text section-copy">Bring clarity to your parking operation with one connected system.</p>
+      </div>
+      <div data-template-id="contact-note" class="canva-banner contact-note">PARK-X is designed for modern campuses, offices, malls, and smart city parking facilities.</div>
+     </div>
+    </section>
+   </main>
+   <footer>
+    <div class="page-wrap footer-row"><span data-template-id="footer-left" class="canva-text">© 2026 PARK-X. Smart parking management system.</span> <span data-template-id="footer-right" class="canva-text">Built for efficient, secure mobility.</span>
+    </div>
+   </footer>
+  </div>
+  <section id="entry-overlay" class="flow-overlay" aria-modal="true" role="dialog" aria-labelledby="entry-heading">
+   <div class="flow-panel">
+    <div class="flow-head">
+     <div>
+      <div data-template-id="entry-eyebrow" class="canva-text eyebrow">VEHICLE ENTRY</div>
+      <h2 id="entry-heading" data-template-id="entry-title" class="canva-text serif flow-title">Start your parking session.</h2>
+     </div><button class="icon-close" type="button" data-close="entry-overlay" aria-label="Close parking entry form"><i data-lucide="x"></i></button>
+    </div>
+    <div class="flow-body">
+     <p data-template-id="entry-copy" class="canva-text flow-copy">Enter your vehicle details and PARK-X will allocate the most suitable available space.</p>
+     <form id="entry-form">
+      <div class="form-grid">
+       <div class="field"><label data-template-id="name-label" class="canva-text" for="full-name">Full Name</label> <input id="full-name" required type="text" autocomplete="name">
+       </div>
+       <div class="field"><label data-template-id="phone-label" class="canva-text" for="phone-number">Phone Number</label> <input id="phone-number" required type="tel" pattern="[0-9+\-\s]{7,}" autocomplete="tel">
+       </div>
+       <div class="field"><label data-template-id="vehicle-number-label" class="canva-text" for="vehicle-number">Vehicle Number</label> <input id="vehicle-number" required type="text">
+       </div>
+       <div class="field"><label data-template-id="vehicle-type-label" class="canva-text" for="vehicle-type">Vehicle Type</label> <select id="vehicle-type" required> <option>Car</option><option>SUV</option><option>Bike</option><option>Van</option> </select>
+       </div>
+       <div class="field"><label data-template-id="category-label" class="canva-text" for="vehicle-category">Vehicle Category</label> <select id="vehicle-category"> <option>Normal</option><option>VIP</option><option>Emergency</option> </select>
+       </div>
+       <div class="field"><label data-template-id="ev-form-label" class="canva-text" for="ev-vehicle">EV Vehicle</label> <select id="ev-vehicle"><option value="No">No</option><option value="Yes">Yes</option></select>
+       </div>
+       <div class="field field-full"><label data-template-id="gate-label" class="canva-text" for="preferred-gate">Preferred Gate</label> <select id="preferred-gate"><option value="Any Gate">Any Gate</option><option>Gate A</option><option>Gate B</option><option>Gate C</option></select>
+       </div>
+       <div class="field-full"><button id="entry-submit" data-template-id="entry-submit-button" class="canva-button btn btn-primary" type="submit"><i data-lucide="sparkles"></i></button>
+       </div>
+      </div>
+     </form>
+     <div id="entry-message" class="notice"></div>
+     <div id="allocation-panel" class="allocation">
+      <div class="scanner"></div><strong id="allocation-status">Finding the best available parking slot...</strong>
+     </div>
+     <section id="entry-receipt" class="receipt" aria-label="Digital parking entry receipt">
+      <div class="receipt-head">
+       <div data-template-id="receipt-brand" class="canva-text receipt-brand">PARK-X</div>
+       <h3 data-template-id="receipt-title" class="canva-text">Digital Parking Receipt</h3>
+      </div>
+      <div class="receipt-body">
+       <div class="receipt-row">
+        <span>Parking ID</span><strong id="receipt-id"></strong>
+       </div>
+       <div class="receipt-row">
+        <span>Exit PIN</span><strong id="receipt-pin"></strong>
+       </div>
+       <div class="receipt-row">
+        <span>Vehicle Number</span><strong id="receipt-vehicle"></strong>
+       </div>
+       <div class="receipt-row">
+        <span>Vehicle Type</span><strong id="receipt-type"></strong>
+       </div>
+       <div class="receipt-row">
+        <span>Assigned Slot</span><strong id="receipt-slot"></strong>
+       </div>
+       <div class="receipt-row">
+        <span>Gate</span><strong id="receipt-gate"></strong>
+       </div>
+       <div class="receipt-row">
+        <span>Entry Date</span><strong id="receipt-date"></strong>
+       </div>
+       <div class="receipt-row">
+        <span>Entry Time</span><strong id="receipt-time"></strong>
+       </div>
+       <div class="receipt-row">
+        <span>Status</span><strong style="color:#158266">ACTIVE</strong>
+       </div>
+       <p data-template-id="receipt-note" class="canva-text receipt-note">Keep your Parking ID and Exit PIN safe. You will need both to complete your exit.</p>
+       <div class="action-row"><button id="print-entry" data-template-id="print-button" class="canva-button btn btn-secondary" type="button">Print Receipt</button> <button id="download-entry" data-template-id="download-button" class="canva-button btn btn-secondary" type="button">Download Receipt</button> <button id="finish-entry" data-template-id="done-button" class="canva-button btn btn-primary" type="button">Done</button>
+       </div>
+      </div>
+     </section>
+    </div>
+   </div>
+  </section>
+  <section id="exit-overlay" class="flow-overlay" aria-modal="true" role="dialog" aria-labelledby="exit-heading">
+   <div class="flow-panel">
+    <div class="flow-head">
+     <div>
+      <div data-template-id="exit-eyebrow" class="canva-text eyebrow">VEHICLE EXIT</div>
+      <h2 id="exit-heading" data-template-id="exit-title" class="canva-text serif flow-title">Complete your exit.</h2>
+     </div><button class="icon-close" type="button" data-close="exit-overlay" aria-label="Close vehicle exit form"><i data-lucide="x"></i></button>
+    </div>
+    <div class="flow-body">
+     <p data-template-id="exit-copy" class="canva-text flow-copy">Enter your phone number to find your active parking session.</p>
+     <form id="lookup-form">
+      <div class="form-grid">
+       <div class="field"><label data-template-id="exit-phone-label" class="canva-text" for="exit-phone">Phone Number</label> <input id="exit-phone" required type="tel">
+       </div>
+       <div class="field" style="display:flex;align-items:end"><button data-template-id="lookup-button" class="canva-button btn btn-primary" type="submit">Find My Session</button>
+       </div>
+      </div>
+     </form>
+     <div id="exit-message" class="notice"></div>
+     <form id="verify-form" class="form-grid hidden" style="margin-top:20px">
+      <div class="field"><label data-template-id="parking-id-label" class="canva-text" for="verify-id">Parking ID</label> <input id="verify-id" required type="text">
+      </div>
+      <div class="field"><label data-template-id="exit-pin-label" class="canva-text" for="verify-pin">Exit PIN</label> <input id="verify-pin" required type="text" inputmode="numeric">
+      </div>
+      <div class="field-full"><button data-template-id="verify-button" class="canva-button btn btn-primary" type="submit"><i data-lucide="shield-check"></i></button>
+      </div>
+     </form>
+     <section id="verify-panel" class="verify-panel">
+      <h3 data-template-id="verified-title" class="canva-text">Session verified</h3>
+      <ul>
+       <li>Vehicle identified</li>
+       <li>Active parking record found</li>
+       <li>Parking ID and Exit PIN verified</li>
+       <li>Vehicle exit authorized</li>
+      </ul>
+     </section>
+     <section id="bill-panel" class="bill-panel">
+      <h3 data-template-id="bill-title" class="canva-text serif bill-title">Parking bill</h3>
+      <div class="receipt-row">
+       <span>Entry Time</span><strong id="bill-entry"></strong>
+      </div>
+      <div class="receipt-row">
+       <span>Exit Time</span><strong id="bill-exit"></strong>
+      </div>
+      <div class="receipt-row">
+       <span>Parking Duration</span><strong id="bill-duration"></strong>
+      </div>
+      <div class="receipt-row">
+       <span>Base Parking Fee</span><strong id="bill-base"></strong>
+      </div>
+      <div class="receipt-row">
+       <span>Peak Charge</span><strong id="bill-peak"></strong>
+      </div>
+      <div class="receipt-row">
+       <span>EV Charging Cost</span><strong id="bill-ev"></strong>
+      </div>
+      <div class="bill-total">
+       <span>TOTAL</span><span id="bill-total"></span>
+      </div><button id="pay-exit" data-template-id="pay-exit-button" class="canva-button btn btn-primary" style="width:100%" type="button">Pay & Exit</button>
+     </section>
+     <section id="checkout-panel" class="checkout-panel">
+      <h3 data-template-id="checkout-title" class="canva-text">Checkout complete</h3>
+      <p data-template-id="checkout-copy" class="canva-text" style="margin:8px 0 0;line-height:1.55">Your vehicle has been checked out successfully.</p>
+      <div class="action-row"><button id="download-final" data-template-id="download-final-button" class="canva-button btn btn-secondary" type="button">Download Receipt</button> <button id="finish-exit" data-template-id="finish-exit-button" class="canva-button btn btn-primary" type="button">Finish Exit</button>
+      </div>
+     </section>
+    </div>
+   </div>
+  </section>
+ <script>
+const API_BASE = "/api";
+
+let backendState = null;
+let selectedParking = null;
+let selectedLookupPhone = "";
+
+async function apiRequest(endpoint, options = {}) {
+  const response = await fetch(`${API_BASE}${endpoint}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    }
+  });
+
+  const data = await response.json().catch(() => ({
+    success: false,
+    message: "Invalid server response"
+  }));
+
+  if (!response.ok) throw new Error(data.message || "Request failed");
+  return data;
+}
+
+const $ = id => document.getElementById(id);
+
+function setText(id, value) {
+  const el = $(id);
+  if (el) el.textContent = value;
+}
+
+function setMany(ids, value) {
+  ids.forEach(id => setText(id, value));
+}
+
+function show(id) {
+  const el = $(id);
+  if (!el) return;
+
+  if (id === "entry-overlay" || id === "exit-overlay") {
+    el.style.display = "block";
+  } else if (id === "verify-form") {
+    el.style.display = "grid";
+  } else {
+    el.style.display = "block";
+  }
+}
+
+function hide(id) {
+  const el = $(id);
+  if (el) el.style.display = "none";
+}
+
+function openOverlay(id) {
+  const el = $(id);
+  if (!el) return;
+
+  el.style.display = "block";
+  document.body.style.overflow = "hidden";
+}
+
+function closeOverlay(id) {
+  const el = $(id);
+  if (!el) return;
+
+  el.style.display = "none";
+  document.body.style.overflow = "";
+}
+
+function showMessage(id, message, type = "success") {
+  const el = $(id);
+  if (!el) return;
+  el.textContent = message;
+  el.className = `notice ${type}`;
+  el.style.display = "block";
+}
+
+function formatDate(value) {
+  if (!value) return "-";
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleString();
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+async function loadBackendState() {
+  try {
+    backendState = await apiRequest("/state");
+    updateAvailability();
+    return backendState;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+function updateAvailability() {
+  if (!backendState) return;
+
+  const total = Number(backendState.totalSlots || 30);
+  const active = backendState.activeVehicles || [];
+  const occupied = active.length;
+  const available = total - occupied;
+  const evCount = active.filter(v => v.type === "EV").length;
+
+  setMany(["available-count","availableSlots"], available);
+  setMany(["occupied-count","occupiedSlots"], occupied);
+  setMany(["capacity-count"], total);
+  setMany(["scene-available"], available);
+  setMany(["scene-allocation"], occupied ? `${occupied} ACTIVE` : "READY");
+  setMany(["ev-count"], evCount);
+
+  const mode = $("mode-status");
+  if (mode) {
+    mode.textContent = backendState.emergencyMode
+      ? "Emergency mode active"
+      : "Normal operations";
+  }
+
+  const gate = $("hero-status");
+  if (gate) {
+    gate.textContent = backendState.gates?.entry
+      ? "Entry gate online"
+      : "Entry gate closed";
+  }
+}
+
+function resetEntryUI() {
+  hide("allocation-panel");
+  hide("entry-receipt");
+  const form = $("entry-form");
+  if (form) form.reset();
+  const msg = $("entry-message");
+  if (msg) msg.style.display = "none";
+}
+
+function resetExitUI() {
+  selectedParking = null;
+  selectedLookupPhone = "";
+  hide("verify-panel");
+  hide("bill-panel");
+  hide("checkout-panel");
+  const verify = $("verify-form");
+  if (verify) verify.classList.add("hidden");
+  const msg = $("exit-message");
+  if (msg) msg.style.display = "none";
+  const bill = ["bill-entry","bill-exit","bill-duration","bill-base","bill-peak","bill-ev","bill-total"];
+  bill.forEach(id => setText(id, ""));
+}
+
+function openEntry() {
+  resetEntryUI();
+  openOverlay("entry-overlay");
+}
+
+function openExit() {
+  resetExitUI();
+  openOverlay("exit-overlay");
+}
+
+function closeAllOverlays() {
+  document.querySelectorAll(".flow-overlay").forEach(el => el.style.display = "none");
+  document.body.style.overflow = "";
+}
+
+async function submitEntry(event) {
+  event.preventDefault();
+
+  const data = {
+    name: $("full-name")?.value.trim(),
+    phone: $("phone-number")?.value.trim(),
+    vehicle: $("vehicle-number")?.value.trim(),
+    type: $("ev-vehicle")?.value === "Yes" ? "EV" : "Normal",
+    category: $("vehicle-category")?.value || "Normal",
+    gate: $("preferred-gate")?.value || "Any Gate",
+    ev: $("ev-vehicle")?.value === "Yes"
+  };
+
+  if (!data.name || !data.phone || !data.vehicle) {
+    showMessage("entry-message", "Please complete all required vehicle details.", "error");
+    return;
+  }
+
+  show("allocation-panel");
+  setText("allocation-status", "Sending request to PARK-X core...");
+
+  try {
+    setText("allocation-status", "MIPS is allocating the best available slot...");
+    const result = await apiRequest("/entry", {
+      method: "POST",
+      body: JSON.stringify(data)
+    });
+
+    if (!result.success) throw new Error(result.message);
+
+    selectedParking = result;
+
+    setText("receipt-id", result.parkingId);
+    setText("receipt-pin", result.exitPin);
+    setText("receipt-vehicle", result.vehicle);
+    setText("receipt-type", result.type);
+    setText("receipt-slot", `Slot ${result.slot}`);
+    setText("receipt-gate", result.gate);
+    const date = new Date(result.entryTime);
+    setText("receipt-date", date.toLocaleDateString());
+    setText("receipt-time", date.toLocaleTimeString());
+
+    setText("allocation-status", `Slot ${result.slot} assigned successfully.`);
+    show("entry-receipt");
+    showMessage("entry-message", "Parking session created successfully.");
+    await loadBackendState();
+  } catch (error) {
+    hide("allocation-panel");
+    showMessage("entry-message", error.message, "error");
+  }
+}
+
+async function lookupSession(event) {
+  event.preventDefault();
+
+  const phone = $("exit-phone")?.value.trim();
+  if (!phone) {
+    showMessage("exit-message", "Enter the phone number used at entry.", "error");
+    return;
+  }
+
+  try {
+    const result = await apiRequest("/lookup", {
+      method: "POST",
+      body: JSON.stringify({ phone })
+    });
+
+    selectedLookupPhone = phone;
+
+    if (result.sessions.length === 1) {
+      const session = result.sessions[0];
+      $("verify-id").value = session.parkingId;
+      $("verify-pin").value = "";
+      show("verify-form");
+      $("verify-form").classList.remove("hidden");
+      showMessage(
+        "exit-message",
+        `Active session found for ${session.vehicle}. Enter the Exit PIN to continue.`
+      );
+    } else {
+      const list = result.sessions.map(s =>
+        `<button type="button" class="btn btn-secondary session-choice" data-id="${escapeHtml(s.parkingId)}">${escapeHtml(s.vehicle)} · ${escapeHtml(s.parkingId)} · Slot ${s.slot}</button>`
+      ).join("");
+
+      show("verify-form");
+      $("verify-form").classList.remove("hidden");
+      showMessage(
+        "exit-message",
+        `Multiple active sessions found. Select the session below, then enter its PIN.`
+      );
+
+      const existing = $("sessionChoices");
+      if (existing) existing.remove();
+
+      const choices = document.createElement("div");
+      choices.id = "sessionChoices";
+      choices.style.cssText = "display:grid;gap:8px;margin:12px 0";
+      choices.innerHTML = list;
+      $("exit-message").after(choices);
+
+      choices.querySelectorAll("[data-id]").forEach(button => {
+        button.addEventListener("click", () => {
+          $("verify-id").value = button.dataset.id;
+          choices.querySelectorAll("[data-id]").forEach(b => b.classList.remove("selected"));
+          button.classList.add("selected");
+        });
+      });
+    }
+  } catch (error) {
+    showMessage("exit-message", error.message, "error");
+  }
+}
+
+async function verifyExit(event) {
+  event.preventDefault();
+
+  const parkingId = $("verify-id")?.value.trim();
+  const exitPin = $("verify-pin")?.value.trim();
+  const phone = $("exit-phone")?.value.trim() || selectedLookupPhone;
+
+  if (!parkingId || !exitPin || !phone) {
+    showMessage("exit-message", "Parking ID, Exit PIN and phone number are required.", "error");
+    return;
+  }
+
+  try {
+    const result = await apiRequest("/verify-exit", {
+      method: "POST",
+      body: JSON.stringify({ parkingId, exitPin, phone })
+    });
+
+    selectedParking = {
+      ...result,
+      exitPin,
+      phone
+    };
+
+    setText("bill-entry", formatDate(result.entryTime));
+    setText("bill-exit", "Calculated at payment");
+    const minutes = Math.max(1, Math.ceil((Date.now() - Date.parse(result.entryTime)) / 60000));
+    const hours = Math.max(1, Math.ceil(minutes / 60));
+    setText("bill-duration", `${minutes} min (${hours} hour billing)`);
+    setText("bill-base", `Rs. ${result.fee}`);
+    setText("bill-peak", "Rs. 0");
+    setText("bill-ev", result.type === "EV" ? "Included in EV rate" : "Rs. 0");
+    setText("bill-total", `Rs. ${result.fee}`);
+
+    show("verify-panel");
+    show("bill-panel");
+    showMessage("exit-message", "Session verified. Payment is ready.");
+  } catch (error) {
+    showMessage("exit-message", error.message, "error");
+  }
+}
+
+async function payAndExit() {
+  if (!selectedParking) {
+    showMessage("exit-message", "Verify the parking session first.", "error");
+    return;
+  }
+
+  const paymentText = prompt(
+    `Current parking fee: Rs. ${selectedParking.fee}\n\nEnter payment amount:`,
+    String(selectedParking.fee)
+  );
+
+  if (paymentText === null) return;
+
+  const payment = Number(paymentText);
+  if (!Number.isFinite(payment)) {
+    showMessage("exit-message", "Enter a valid payment amount.", "error");
+    return;
+  }
+
+  try {
+    const result = await apiRequest("/exit", {
+      method: "POST",
+      body: JSON.stringify({
+        parkingId: selectedParking.parkingId,
+        exitPin: selectedParking.exitPin,
+        phone: selectedParking.phone,
+        payment
+      })
+    });
+
+    setText("bill-exit", formatDate(result.exitTime));
+    setText("bill-duration", `${result.durationMinutes} minutes`);
+    setText("bill-total", `Rs. ${result.fee}`);
+    show("checkout-panel");
+    showMessage("exit-message", `Payment successful. Change: Rs. ${result.change}`);
+
+    selectedParking = {
+      ...selectedParking,
+      ...result
+    };
+
+    await loadBackendState();
+  } catch (error) {
+    showMessage("exit-message", error.message, "error");
+  }
+}
+
+function receiptText(final = false) {
+  if (!selectedParking) return "PARK-X receipt";
+
+  return [
+    "PARK-X — SMART PARKING",
+    "------------------------",
+    `Parking ID: ${selectedParking.parkingId}`,
+    `Vehicle: ${selectedParking.vehicle}`,
+    `Type: ${selectedParking.type}`,
+    `Slot: ${selectedParking.slot}`,
+    `Entry: ${formatDate(selectedParking.entryTime)}`,
+    final ? `Exit: ${formatDate(selectedParking.exitTime)}` : "Status: ACTIVE",
+    final ? `Fee: Rs. ${selectedParking.fee}` : `Exit PIN: ${selectedParking.exitPin}`,
+    final ? `Payment: Rs. ${selectedParking.payment}` : "",
+    final ? `Change: Rs. ${selectedParking.change}` : "",
+    "------------------------",
+    "PARK-X"
+  ].filter(Boolean).join("\n");
+}
+
+function downloadReceipt(final = false) {
+  const blob = new Blob([receiptText(final)], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `PARK-X-${selectedParking?.parkingId || "receipt"}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function printReceipt(final = false) {
+  const win = window.open("", "_blank", "width=600,height=700");
+  if (!win) return;
+
+  win.document.write(`
+    <html><head><title>PARK-X Receipt</title>
+    <style>body{font-family:Arial;padding:35px;line-height:1.8}h1{font-size:24px}</style>
+    </head><body><h1>PARK-X</h1><pre>${escapeHtml(receiptText(final))}</pre>
+    <script>window.onload=()=>window.print();<\/script></body></html>
+  `);
+  win.document.close();
+}
+
+function bind() {
+  // Main navigation
+  [
+    ["nav-park", openEntry],
+    ["nav-park-button", openEntry],
+    ["hero-park", openEntry],
+    ["hero-park-button", openEntry],
+    ["nav-exit", openExit],
+    ["nav-exit-button", openExit],
+    ["hero-exit", openExit],
+    ["hero-exit-button", openExit]
+  ].forEach(([id, handler]) => $(id)?.addEventListener("click", handler));
+
+  document.querySelectorAll("[data-close]").forEach(button => {
+    button.addEventListener("click", () => closeOverlay(button.dataset.close));
+  });
+
+  $("entry-form")?.addEventListener("submit", submitEntry);
+  $("lookup-form")?.addEventListener("submit", lookupSession);
+  $("verify-form")?.addEventListener("submit", verifyExit);
+
+  $("pay-exit")?.addEventListener("click", payAndExit);
+
+  $("print-entry")?.addEventListener("click", () => printReceipt(false));
+  $("download-entry")?.addEventListener("click", () => downloadReceipt(false));
+  $("finish-entry")?.addEventListener("click", () => closeOverlay("entry-overlay"));
+
+  $("download-final")?.addEventListener("click", () => downloadReceipt(true));
+  $("finish-exit")?.addEventListener("click", () => closeOverlay("exit-overlay"));
+
+  // Smooth navigation for normal page sections
+  document.querySelectorAll("a[href^='#']").forEach(link => {
+    link.addEventListener("click", event => {
+      const target = document.querySelector(link.getAttribute("href"));
+      if (target) {
+        event.preventDefault();
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  });
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  bind();
+  if (window.lucide) lucide.createIcons();
+  await loadBackendState();
+  setInterval(loadBackendState, 3000);
+});
+</script>

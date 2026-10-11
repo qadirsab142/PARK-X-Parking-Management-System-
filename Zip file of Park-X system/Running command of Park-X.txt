@@ -1,0 +1,6 @@
+Running command of Park-X
+
+
+cd PARK-X_FINAL_CORRECT
+
+node bridge/server.js
